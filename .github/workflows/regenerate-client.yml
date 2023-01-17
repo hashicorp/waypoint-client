@@ -1,0 +1,16 @@
+---
+# WIP. This github workflow will regenerate the client and models on hcp.swagger.json changes.
+#name: regenerate-client
+#
+#on:
+#  push:
+#    branches:
+#      -main
+#
+#jobs:
+#  regenerate-client:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Regenerate the swagger client and models using go-swagger
+#        run: |
+#          swagger generate client -f ./hcp.swagger.json --tags="Waypoint" --default-scheme=https
