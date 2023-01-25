@@ -10,6 +10,7 @@ require (
 	github.com/go-openapi/validate v0.19.10
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	golang.org/x/oauth2 v0.0.0-20201109201403-9fd604954f58
+	github.com/hashicorp/go-hclog v1.4.0
 )
 
 require (
