@@ -3,8 +3,6 @@ package context
 import (
 	"context"
 
-	"github.com/go-openapi/runtime"
-
 	"github.com/hashicorp/waypoint-client/gen/client/waypoint_control_service"
 	wcs "github.com/hashicorp/waypoint-client/gen/client/waypoint_control_service"
 )
@@ -25,12 +23,12 @@ func InContext(ctx context.Context, externalId string, organizationId string, hc
 	return context.WithValue(ctx, Key{}, Value{ExternalId: externalId, OrganizationId: organizationId, HcpProjectId: hcpProjectId})
 }
 
-func GetNamespace(wcs wcs.ClientService, orgId string, hcpProjectId string, bearerAuth runtime.ClientAuthInfoWriter) (string, error) {
+func GetNamespace(wcs wcs.ClientService, orgId string, hcpProjectId string) (string, error) {
 	resp, err := wcs.WaypointControlServiceGetNamespace(
 		waypoint_control_service.NewWaypointControlServiceGetNamespaceParams().
 			WithLocationOrganizationID(orgId).
 			WithLocationProjectID(hcpProjectId),
-		bearerAuth,
+		nil,
 	)
 	return resp.GetPayload().Namespace.ID, err
 

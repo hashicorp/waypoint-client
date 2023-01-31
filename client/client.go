@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	runtime2 "github.com/go-openapi/runtime"
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
 	"github.com/hashicorp/go-cleanhttp"
@@ -65,10 +66,10 @@ func New(config Config) (smwaypoint.ClientService, error) {
 		config.BasePath = "/"
 	}
 
+	var bearerAuth runtime2.ClientAuthInfoWriter;
 	if config.APIState == HCP {
 		//create client to get namespace only. this client is only used once on initialization to grab the namespace.
 		runtime := httptransport.New(config.APIAddress(), config.BasePath, []string{"https"})
-		namespaceClient := wcs.New(runtime, strfmt.Default)
 
 		token, err := config.HCPWaypointConfig.Token()
 		if err != nil {
@@ -76,15 +77,18 @@ func New(config Config) (smwaypoint.ClientService, error) {
 		}
 
 		bearerAuth := httptransport.BearerToken(token.AccessToken)
+		runtime.DefaultAuthentication = bearerAuth
 
+		namespaceClient := wcs.New(runtime, strfmt.Default)
 		//Do GetNamespace Call. Put it in the context.
-		namespaceId, err := namespace.GetNamespace(namespaceClient, config.HCPOrgId, config.HCPProjectId, bearerAuth)
+		namespaceId, err := namespace.GetNamespace(namespaceClient, config.HCPOrgId, config.HCPProjectId)
 		if err != nil {
 			return nil, err
 		}
 		if namespaceId == "" || namespaceId == "0" {
 			return nil, fmt.Errorf("No namespace found associated with orgId and projectId provided.")
 		}
+
 		basePath := config.BasePath + "namespace/" + namespaceId
 
 		config.BasePath = basePath
@@ -92,6 +96,8 @@ func New(config Config) (smwaypoint.ClientService, error) {
 
 	runtime := httptransport.New(config.APIAddress(), config.BasePath, []string{"https"})
 	runtime.Transport = transport
+	runtime.DefaultAuthentication = bearerAuth
+
 	apiClient := smwaypoint.New(runtime, strfmt.Default)
 
 	return apiClient, nil
