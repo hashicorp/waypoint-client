@@ -14,7 +14,8 @@ import (
 
 	"github.com/hashicorp/waypoint-client/config"
 	namespace "github.com/hashicorp/waypoint-client/context"
-	"github.com/hashicorp/waypoint-client/gen/client"
+	smwaypoint "github.com/hashicorp/waypoint-client/gen/client/waypoint"
+	wcs "github.com/hashicorp/waypoint-client/gen/client/waypoint_control_service"
 )
 
 type Config struct {
@@ -41,14 +42,8 @@ const (
 )
 
 // New creates a new Waypoint client given the config.
-func New(config Config) (*client.HashiCorpCloudPlatformWaypoint, error) {
-	tlsTransport := cleanhttp.DefaultPooledTransport()
-	tlsTransport.TLSClientConfig = &tls.Config{}
+func New(config Config) (smwaypoint.ClientService, error) {
 
-	var transport http.RoundTripper = &oauth2.Transport{
-		Base:   tlsTransport,
-		Source: &config,
-	}
 	apiState, err := config.decideState()
 	if err != nil {
 		return nil, fmt.Errorf("Cannot set APIState with current config.")
@@ -57,12 +52,19 @@ func New(config Config) (*client.HashiCorpCloudPlatformWaypoint, error) {
 
 	ctx := context.Background()
 
+	tlsTransport := cleanhttp.DefaultPooledTransport()
+	tlsTransport.TLSClientConfig = &tls.Config{}
+
+	var transport http.RoundTripper = &oauth2.Transport{
+		Base:   tlsTransport,
+		Source: &config,
+	}
+
 	runtime := httptransport.New(config.APIAddress(), config.BasePath, []string{"https"})
-	runtime.Transport = transport
 
 	if config.APIState == HCP {
 		//create client to get namespace only. this client is only used once on initialization to grab the namespace.
-		namespaceClient := client.New(runtime, strfmt.Default)
+		namespaceClient := wcs.New(runtime, strfmt.Default)
 
 		token, err := config.HCPWaypointConfig.Token()
 		if err != nil {
@@ -78,9 +80,13 @@ func New(config Config) (*client.HashiCorpCloudPlatformWaypoint, error) {
 		}
 		namespaceWithContext(ctx, namespaceId, config.HCPOrgId, config.HCPProjectId)
 
+		runtime = httptransport.New(config.APIAddress(), config.BasePath+"/namespace/"+namespaceId, []string{"https"})
 	}
 
-	return client, nil
+	runtime.Transport = transport
+	apiClient := smwaypoint.New(runtime, strfmt.Default)
+
+	return apiClient, nil
 }
 
 // namespaceWithContext generates a new context that contains the namespace identifiers

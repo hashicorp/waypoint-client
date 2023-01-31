@@ -70,7 +70,7 @@ func (m *HashicorpWaypointGetTaskResponse) validateStartJob(formats strfmt.Regis
 	}
 
 	if m.StartJob != nil {
-		if err := m.StartJob.Validate3(formats); err != nil {
+		if err := m.StartJob.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("start_job")
 			}
@@ -88,7 +88,7 @@ func (m *HashicorpWaypointGetTaskResponse) validateStopJob(formats strfmt.Regist
 	}
 
 	if m.StopJob != nil {
-		if err := m.StopJob.Validate3(formats); err != nil {
+		if err := m.StopJob.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("stop_job")
 			}
@@ -124,7 +124,7 @@ func (m *HashicorpWaypointGetTaskResponse) validateTaskJob(formats strfmt.Regist
 	}
 
 	if m.TaskJob != nil {
-		if err := m.TaskJob.Validate3(formats); err != nil {
+		if err := m.TaskJob.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("task_job")
 			}
@@ -142,7 +142,7 @@ func (m *HashicorpWaypointGetTaskResponse) validateWatchJob(formats strfmt.Regis
 	}
 
 	if m.WatchJob != nil {
-		if err := m.WatchJob.Validate3(formats); err != nil {
+		if err := m.WatchJob.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("watch_job")
 			}
