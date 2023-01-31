@@ -51,9 +51,10 @@ func New(orgId string, projectId string, clientId string, clientSecret string) (
 		HCPOrgId:     orgId,
 		HCPProjectId: projectId,
 		ClientCredentialsConfig: clientcredentials.Config{
-			ClientID:     clientId,
-			ClientSecret: clientSecret,
-			TokenURL:     defaultAuthURL,
+			ClientID:       clientId,
+			ClientSecret:   clientSecret,
+			TokenURL:       defaultAuthURL,
+			EndpointParams: url.Values{"audience": {aud}},
 		},
 	}
 
