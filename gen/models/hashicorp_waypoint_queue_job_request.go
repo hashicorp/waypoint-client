@@ -46,7 +46,7 @@ func (m *HashicorpWaypointQueueJobRequest) validateJob(formats strfmt.Registry) 
 	}
 
 	if m.Job != nil {
-		if err := m.Job.Validate3(formats); err != nil {
+		if err := m.Job.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("job")
 			}

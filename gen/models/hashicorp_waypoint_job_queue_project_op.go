@@ -46,7 +46,7 @@ func (m *HashicorpWaypointJobQueueProjectOp) validateJobTemplate(formats strfmt.
 	}
 
 	if m.JobTemplate != nil {
-		if err := m.JobTemplate.Validate3(formats); err != nil {
+		if err := m.JobTemplate.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("job_template")
 			}

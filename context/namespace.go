@@ -5,8 +5,8 @@ import (
 
 	"github.com/go-openapi/runtime"
 
-	"github.com/hashicorp/waypoint-client/gen/client"
 	"github.com/hashicorp/waypoint-client/gen/client/waypoint_control_service"
+	wcs "github.com/hashicorp/waypoint-client/gen/client/waypoint_control_service"
 )
 
 type Key struct{}
@@ -25,8 +25,8 @@ func InContext(ctx context.Context, externalId string, organizationId string, hc
 	return context.WithValue(ctx, Key{}, Value{ExternalId: externalId, OrganizationId: organizationId, HcpProjectId: hcpProjectId})
 }
 
-func GetNamespace(c *client.HashiCorpCloudPlatformWaypoint, orgId string, hcpProjectId string, bearerAuth runtime.ClientAuthInfoWriter) (string, error) {
-	resp, err := c.WaypointControlService.WaypointControlServiceGetNamespace(
+func GetNamespace(wcs wcs.ClientService, orgId string, hcpProjectId string, bearerAuth runtime.ClientAuthInfoWriter) (string, error) {
+	resp, err := wcs.WaypointControlServiceGetNamespace(
 		waypoint_control_service.NewWaypointControlServiceGetNamespaceParams().
 			WithLocationOrganizationID(orgId).
 			WithLocationProjectID(hcpProjectId),
