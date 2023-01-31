@@ -48,7 +48,7 @@ func (m *HashicorpWaypointUIGetProjectResponse) validateLatestInitJob(formats st
 	}
 
 	if m.LatestInitJob != nil {
-		if err := m.LatestInitJob.Validate3(formats); err != nil {
+		if err := m.LatestInitJob.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("latest_init_job")
 			}

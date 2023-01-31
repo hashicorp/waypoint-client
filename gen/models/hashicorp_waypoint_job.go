@@ -249,8 +249,8 @@ type HashicorpWaypointJob struct {
 	Workspace *HashicorpWaypointRefWorkspace `json:"workspace,omitempty"`
 }
 
-// Validate2 validates this hashicorp waypoint job
-func (m *HashicorpWaypointJob) Validate3(formats strfmt.Registry) error {
+// Validate validates this hashicorp waypoint job
+func (m *HashicorpWaypointJob) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateAckTime(formats); err != nil {
@@ -860,7 +860,7 @@ func (m *HashicorpWaypointJob) validateResult(formats strfmt.Registry) error {
 	}
 
 	if m.Result != nil {
-		if err := m.Result.Validate2(formats); err != nil {
+		if err := m.Result.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("result")
 			}

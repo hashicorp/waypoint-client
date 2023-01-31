@@ -55,7 +55,7 @@ func (m *HashicorpWaypointListJobsResponse) validateJobs(formats strfmt.Registry
 		}
 
 		if m.Jobs[i] != nil {
-			if err := m.Jobs[i].Validate3(formats); err != nil {
+			if err := m.Jobs[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("jobs" + "." + strconv.Itoa(i))
 				}
