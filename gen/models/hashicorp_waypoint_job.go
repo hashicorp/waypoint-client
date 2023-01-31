@@ -221,7 +221,7 @@ type HashicorpWaypointJob struct {
 	Up *HashicorpWaypointJobUpOp `json:"up,omitempty"`
 
 	// validate
-	Validate HashicorpWaypointJobValidateOp `json:"validate,omitempty"`
+	Validate3 HashicorpWaypointJobValidateOp `json:"validate,omitempty"`
 
 	// Variable refs store the final value used on the operation for each variable
 	// defined in the waypoint.hcl. Any variables with `sensitive` set in the
@@ -249,7 +249,7 @@ type HashicorpWaypointJob struct {
 	Workspace *HashicorpWaypointRefWorkspace `json:"workspace,omitempty"`
 }
 
-// Validate validates this hashicorp waypoint job
+// Validate2 validates this hashicorp waypoint job
 func (m *HashicorpWaypointJob) Validate(formats strfmt.Registry) error {
 	var res []error
 
@@ -860,7 +860,7 @@ func (m *HashicorpWaypointJob) validateResult(formats strfmt.Registry) error {
 	}
 
 	if m.Result != nil {
-		if err := m.Result.Validate(formats); err != nil {
+		if err := m.Result.Validate2(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("result")
 			}

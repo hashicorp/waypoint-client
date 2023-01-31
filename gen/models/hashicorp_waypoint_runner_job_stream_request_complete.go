@@ -41,7 +41,7 @@ func (m *HashicorpWaypointRunnerJobStreamRequestComplete) validateResult(formats
 	}
 
 	if m.Result != nil {
-		if err := m.Result.Validate(formats); err != nil {
+		if err := m.Result.Validate2(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("result")
 			}

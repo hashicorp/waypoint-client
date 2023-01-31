@@ -18,6 +18,10 @@ import (
 	wcs "github.com/hashicorp/waypoint-client/gen/client/waypoint_control_service"
 )
 
+const (
+	defaultBasePath = "/"
+)
+
 type Config struct {
 	//HCPConfig contains config values to interact with HCP Waypoint API
 	config.HCPWaypointConfig
@@ -50,8 +54,6 @@ func New(config Config) (smwaypoint.ClientService, error) {
 	}
 	config.APIState = apiState
 
-	ctx := context.Background()
-
 	tlsTransport := cleanhttp.DefaultPooledTransport()
 	tlsTransport.TLSClientConfig = &tls.Config{}
 
@@ -59,11 +61,13 @@ func New(config Config) (smwaypoint.ClientService, error) {
 		Base:   tlsTransport,
 		Source: &config,
 	}
-
-	runtime := httptransport.New(config.APIAddress(), config.BasePath, []string{"https"})
+	if config.BasePath == "" {
+		config.BasePath = "/"
+	}
 
 	if config.APIState == HCP {
 		//create client to get namespace only. this client is only used once on initialization to grab the namespace.
+		runtime := httptransport.New(config.APIAddress(), config.BasePath, []string{"https"})
 		namespaceClient := wcs.New(runtime, strfmt.Default)
 
 		token, err := config.HCPWaypointConfig.Token()
@@ -78,11 +82,15 @@ func New(config Config) (smwaypoint.ClientService, error) {
 		if err != nil {
 			return nil, err
 		}
-		namespaceWithContext(ctx, namespaceId, config.HCPOrgId, config.HCPProjectId)
+		if namespaceId == "" || namespaceId == "0" {
+			return nil, fmt.Errorf("No namespace found associated with orgId and projectId provided.")
+		}
+		basePath := config.BasePath + "namespace/" + namespaceId
 
-		runtime = httptransport.New(config.APIAddress(), config.BasePath+"/namespace/"+namespaceId, []string{"https"})
+		config.BasePath = basePath
 	}
 
+	runtime := httptransport.New(config.APIAddress(), config.BasePath, []string{"https"})
 	runtime.Transport = transport
 	apiClient := smwaypoint.New(runtime, strfmt.Default)
 

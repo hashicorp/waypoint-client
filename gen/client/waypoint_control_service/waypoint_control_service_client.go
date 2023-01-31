@@ -42,7 +42,7 @@ type ClientService interface {
   WaypointControlServiceAttachGithub waypoint control service attach github API
 */
 func (a *Client) WaypointControlServiceAttachGithub(params *WaypointControlServiceAttachGithubParams, authInfo runtime.ClientAuthInfoWriter) (*WaypointControlServiceAttachGithubOK, error) {
-	// TODO: Validate the params before sending
+	// TODO: Validate2 the params before sending
 	if params == nil {
 		params = NewWaypointControlServiceAttachGithubParams()
 	}
@@ -76,7 +76,7 @@ func (a *Client) WaypointControlServiceAttachGithub(params *WaypointControlServi
   WaypointControlServiceCreateNamespace creates namespaces creates an h c p waypoint namespaces and start billing for it
 */
 func (a *Client) WaypointControlServiceCreateNamespace(params *WaypointControlServiceCreateNamespaceParams, authInfo runtime.ClientAuthInfoWriter) (*WaypointControlServiceCreateNamespaceOK, error) {
-	// TODO: Validate the params before sending
+	// TODO: Validate2 the params before sending
 	if params == nil {
 		params = NewWaypointControlServiceCreateNamespaceParams()
 	}
@@ -110,7 +110,7 @@ func (a *Client) WaypointControlServiceCreateNamespace(params *WaypointControlSe
   WaypointControlServiceDetachGithub waypoint control service detach github API
 */
 func (a *Client) WaypointControlServiceDetachGithub(params *WaypointControlServiceDetachGithubParams, authInfo runtime.ClientAuthInfoWriter) (*WaypointControlServiceDetachGithubOK, error) {
-	// TODO: Validate the params before sending
+	// TODO: Validate2 the params before sending
 	if params == nil {
 		params = NewWaypointControlServiceDetachGithubParams()
 	}
@@ -144,7 +144,7 @@ func (a *Client) WaypointControlServiceDetachGithub(params *WaypointControlServi
   WaypointControlServiceGetNamespace gets namespace returns the namespace for the h c p organization project combo this automatically creates the namespace if it doesn t yet exist
 */
 func (a *Client) WaypointControlServiceGetNamespace(params *WaypointControlServiceGetNamespaceParams, authInfo runtime.ClientAuthInfoWriter) (*WaypointControlServiceGetNamespaceOK, error) {
-	// TODO: Validate the params before sending
+	// TODO: Validate2 the params before sending
 	if params == nil {
 		params = NewWaypointControlServiceGetNamespaceParams()
 	}
@@ -178,7 +178,7 @@ func (a *Client) WaypointControlServiceGetNamespace(params *WaypointControlServi
   WaypointControlServiceGetNamespaceInfo gets namespace info returns basic information about the namespace the user exists in
 */
 func (a *Client) WaypointControlServiceGetNamespaceInfo(params *WaypointControlServiceGetNamespaceInfoParams, authInfo runtime.ClientAuthInfoWriter) (*WaypointControlServiceGetNamespaceInfoOK, error) {
-	// TODO: Validate the params before sending
+	// TODO: Validate2 the params before sending
 	if params == nil {
 		params = NewWaypointControlServiceGetNamespaceInfoParams()
 	}

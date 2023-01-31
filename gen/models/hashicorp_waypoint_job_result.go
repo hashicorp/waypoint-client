@@ -71,8 +71,8 @@ type HashicorpWaypointJobResult struct {
 	WatchTask *HashicorpWaypointJobWatchTaskResult `json:"watch_task,omitempty"`
 }
 
-// Validate validates this hashicorp waypoint job result
-func (m *HashicorpWaypointJobResult) Validate(formats strfmt.Registry) error {
+// Validate2 validates this hashicorp waypoint job result
+func (m *HashicorpWaypointJobResult) Validate2(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateAuth(formats); err != nil {
