@@ -1,7 +1,6 @@
 package client
 
 import (
-	"context"
 	"crypto/tls"
 	"fmt"
 	"net/http"
@@ -10,7 +9,6 @@ import (
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
 	"github.com/hashicorp/go-cleanhttp"
-	"github.com/hashicorp/go-hclog"
 	"golang.org/x/oauth2"
 
 	"github.com/hashicorp/waypoint-client/config"
@@ -47,6 +45,7 @@ const (
 )
 
 // New creates a new Waypoint client given the config.
+// If configured for HCP Waypoint Get Namespace and attach it to the basepath and setup bearer token transport.
 func New(config Config) (smwaypoint.ClientService, error) {
 
 	apiState, err := config.decideState()
@@ -66,15 +65,16 @@ func New(config Config) (smwaypoint.ClientService, error) {
 		config.BasePath = "/"
 	}
 
-	var bearerAuth runtime2.ClientAuthInfoWriter;
+	var bearerAuth runtime2.ClientAuthInfoWriter
 	if config.APIState == HCP {
-		//create client to get namespace only. this client is only used once on initialization to grab the namespace.
-		runtime := httptransport.New(config.APIAddress(), config.BasePath, []string{"https"})
 
 		token, err := config.HCPWaypointConfig.Token()
 		if err != nil {
 			return nil, fmt.Errorf("Cannot retrieve token from current HCP Credentials.")
 		}
+
+		//create client to get namespace only. this client is only used once on initialization to grab the namespace.
+		runtime := httptransport.New(config.APIAddress(), config.BasePath, []string{"https"})
 
 		bearerAuth := httptransport.BearerToken(token.AccessToken)
 		runtime.DefaultAuthentication = bearerAuth
@@ -89,11 +89,16 @@ func New(config Config) (smwaypoint.ClientService, error) {
 			return nil, fmt.Errorf("No namespace found associated with orgId and projectId provided.")
 		}
 
-		basePath := config.BasePath + "namespace/" + namespaceId
-
+		// Add namespace Id to the basepath
+		basePath := config.BasePath + "waypoint/2022-02-03/namespace/" + namespaceId
 		config.BasePath = basePath
 	}
 
+	if config.APIState == SelfManaged {
+		bearerAuth = httptransport.BearerToken(config.WaypointConfig.WaypointUserToken)
+	}
+
+	//Initialize API Client.
 	runtime := httptransport.New(config.APIAddress(), config.BasePath, []string{"https"})
 	runtime.Transport = transport
 	runtime.DefaultAuthentication = bearerAuth
@@ -103,15 +108,7 @@ func New(config Config) (smwaypoint.ClientService, error) {
 	return apiClient, nil
 }
 
-// namespaceWithContext generates a new context that contains the namespace identifiers
-// currently in use.
-func namespaceWithContext(ctx context.Context, externalId string, organizationId string, hcpProjectId string) context.Context {
-	ctx = namespace.InContext(ctx, externalId, organizationId, hcpProjectId)
-
-	// Also decorate the logger on the context with the namespace id
-	return hclog.WithContext(ctx, hclog.FromContext(ctx), "namespace_id", externalId)
-}
-
+// Validate config variables to determine whether APIClient is for HCP Waypoint or Self Managed Waypoint.
 func (c *Config) decideState() (apiState, error) {
 	err := c.HCPWaypointConfig.Validate()
 	if err == nil {
