@@ -44,5 +44,5 @@ WAYPOINT_USER_TOKEN="..."
         github.com/hashicorp/waypoint-client {latest release}
     ```
 
-See `cmd/main.go` for a complete example.
+See `examples/hcp/main.go` for a complete example for HCP and `examples/self-managed/main.go` for a self-managed Waypoint server.
 
