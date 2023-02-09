@@ -16,8 +16,8 @@ func (c *WaypointConfig) Validate() error {
 		return fmt.Errorf("Self managed config undefined")
 	}
 
-	if c.WaypointUserToken == "" || c.ServerUrl == "" {
-		return fmt.Errorf("both user token and server url must be provided")
+	if c.WaypointUserToken == "" {
+		return fmt.Errorf("user token must be provided")
 	}
 
 	return nil

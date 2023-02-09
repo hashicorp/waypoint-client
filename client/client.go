@@ -32,6 +32,9 @@ type Config struct {
 
 	//BasePath is the path to the api server.
 	BasePath string
+
+	// ServerURL is the URL of the Waypoint Server. Only for Self-Managed Waypoint.
+	ServerUrl string
 }
 
 func (c *Config) isHCP() bool {
@@ -86,6 +89,9 @@ func New(config Config) (smwaypoint.ClientService, error) {
 		basePath := config.BasePath + "waypoint/2022-02-03/namespace/" + namespaceId
 		config.BasePath = basePath
 	} else if config.isSelfManaged() {
+		if config.ServerUrl == "" {
+			return nil, fmt.Errorf("Server url must be provided")
+		}
 		authWriter = httptransport.APIKeyAuth("authorization", "header", config.WaypointConfig.WaypointUserToken)
 		if config.BasePath == "" {
 			config.BasePath = defaultBasePath
