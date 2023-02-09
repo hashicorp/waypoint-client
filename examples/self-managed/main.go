@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/hashicorp/waypoint-client/client"
-	"github.com/hashicorp/waypoint-client/config"
 	"github.com/hashicorp/waypoint/pkg/client/gen/client/waypoint"
 )
 
@@ -13,15 +12,12 @@ import (
 
 func main() {
 
-	clientConfig := client.Config{
-		WaypointConfig: &config.WaypointConfig{
-			WaypointUserToken:  "waypoint user token",
-			InsecureSkipVerify: true,
-		},
-		ServerUrl: "localhost:9702",
+	clientConfig, err := client.NewWithSelfManaged("waypoint-user-token", "localhost:9702", true)
+	if err != nil {
+		panic(err)
 	}
 
-	client, err := client.New(clientConfig)
+	client, err := client.New(*clientConfig)
 	if err != nil {
 		log.Fatal("Unable to setup client", err)
 	}
