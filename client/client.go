@@ -13,8 +13,8 @@ import (
 
 	"github.com/hashicorp/waypoint-client/config"
 	namespace "github.com/hashicorp/waypoint-client/context"
-	smwaypoint "github.com/hashicorp/waypoint-client/gen/client/waypoint"
 	wcs "github.com/hashicorp/waypoint-client/gen/client/waypoint_control_service"
+	smwaypoint "github.com/hashicorp/waypoint/pkg/client/gen/client/waypoint"
 )
 
 const (

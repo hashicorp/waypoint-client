@@ -6,7 +6,7 @@ import (
 
 	apiclient "github.com/hashicorp/waypoint-client/client"
 	config "github.com/hashicorp/waypoint-client/config"
-	"github.com/hashicorp/waypoint-client/gen/client/waypoint"
+	"github.com/hashicorp/waypoint/pkg/client/gen/client/waypoint"
 )
 
 //Example Usage of Waypoint Client Library with HCP Waypoint.
