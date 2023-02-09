@@ -78,13 +78,14 @@ func New(orgId string, projectId string, clientId string, clientSecret string) (
 }
 
 func (c *HCPWaypointConfig) Validate() error {
-	if (c.ClientCredentialsConfig.ClientID == "" && c.ClientCredentialsConfig.ClientSecret != "") ||
-		(c.ClientCredentialsConfig.ClientID != "" && c.ClientCredentialsConfig.ClientSecret == "") {
+	if c == nil {
+		return fmt.Errorf("HCP config undefined")
+	}
+	if c.ClientCredentialsConfig.ClientID == "" || c.ClientCredentialsConfig.ClientSecret == "" {
 		return fmt.Errorf("both client ID and secret must be provided")
 	}
 
-	if (c.HCPOrgId == "" && c.HCPProjectId != "") ||
-		(c.HCPOrgId != "" && c.HCPProjectId == "") {
+	if c.HCPOrgId == "" || c.HCPProjectId == "" {
 		return fmt.Errorf("Both organization ID and project ID must be provided")
 	}
 
@@ -92,5 +93,8 @@ func (c *HCPWaypointConfig) Validate() error {
 }
 
 func (c *HCPWaypointConfig) Token() (*oauth2.Token, error) {
+	if c == nil {
+		return nil, fmt.Errorf("Undefined")
+	}
 	return c.tokenSource.Token()
 }

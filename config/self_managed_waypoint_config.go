@@ -9,11 +9,18 @@ type WaypointConfig struct {
 
 	// ServerURL is the URL of the Waypoint Server. Only for Self-Managed Waypoint.
 	ServerUrl string
+
+	// Waypoint by default runs with a self-signed certificate.
+	InsecureSkipVerify bool
 }
 
 func (c *WaypointConfig) Validate() error {
-	if (c.WaypointUserToken == "" && c.ServerUrl != "") || (c.WaypointUserToken != "" && c.ServerUrl == "") {
-		return fmt.Errorf("both user token and server url must be provided")
+	if c == nil {
+		return fmt.Errorf("Self managed config undefined")
+	}
+
+	if c.WaypointUserToken == "" {
+		return fmt.Errorf("user token must be provided")
 	}
 
 	return nil

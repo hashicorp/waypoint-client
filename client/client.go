@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	runtime2 "github.com/go-openapi/runtime"
+	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/runtime/client"
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
 	"github.com/hashicorp/go-cleanhttp"
@@ -13,46 +14,40 @@ import (
 
 	"github.com/hashicorp/waypoint-client/config"
 	namespace "github.com/hashicorp/waypoint-client/context"
-	smwaypoint "github.com/hashicorp/waypoint-client/gen/client/waypoint"
 	wcs "github.com/hashicorp/waypoint-client/gen/client/waypoint_control_service"
+	smwaypoint "github.com/hashicorp/waypoint/pkg/client/gen/client/waypoint"
 )
 
 const (
-	defaultBasePath = "/"
+	defaultBasePath = "/v1"
+	defaultHCPHost  = "api.cloud.hashicorp.com"
 )
 
 type Config struct {
 	//HCPConfig contains config values to interact with HCP Waypoint API
-	config.HCPWaypointConfig
+	*config.HCPWaypointConfig
 
 	//WaypointConfig contains config values to interact with Self Managed Waypoint API.
-	config.WaypointConfig
+	*config.WaypointConfig
 
 	//BasePath is the path to the api server.
 	BasePath string
 
-	//APIState is the client state. SelfManaged for Self Managed Waypoint
-	//and HCP for HCP Waypoint.
-	APIState apiState
+	// ServerURL is the URL of the Waypoint Server. Only for Self-Managed Waypoint.
+	ServerUrl string
 }
 
-type apiState int
+func (c *Config) isHCP() bool {
+	return c.HCPWaypointConfig != nil
+}
 
-const (
-	HCP apiState = iota
-	SelfManaged
-	Undetermined
-)
+func (c *Config) isSelfManaged() bool {
+	return c.WaypointConfig != nil
+}
 
 // New creates a new Waypoint client given the config.
 // If configured for HCP Waypoint Get Namespace and attach it to the basepath and setup bearer token transport.
 func New(config Config) (smwaypoint.ClientService, error) {
-
-	apiState, err := config.decideState()
-	if err != nil {
-		return nil, fmt.Errorf("Cannot set APIState with current config.")
-	}
-	config.APIState = apiState
 
 	tlsTransport := cleanhttp.DefaultPooledTransport()
 	tlsTransport.TLSClientConfig = &tls.Config{}
@@ -61,12 +56,14 @@ func New(config Config) (smwaypoint.ClientService, error) {
 		Base:   tlsTransport,
 		Source: &config,
 	}
-	if config.BasePath == "" {
-		config.BasePath = "/"
-	}
 
-	var bearerAuth runtime2.ClientAuthInfoWriter
-	if config.APIState == HCP {
+	var authWriter runtime.ClientAuthInfoWriter
+	var tlsOpts httptransport.TLSClientOptions
+	var httpRuntime *client.Runtime
+	if config.isHCP() {
+		if config.ServerUrl == "" {
+			config.ServerUrl = defaultHCPHost
+		}
 
 		token, err := config.HCPWaypointConfig.Token()
 		if err != nil {
@@ -74,12 +71,12 @@ func New(config Config) (smwaypoint.ClientService, error) {
 		}
 
 		//create client to get namespace only. this client is only used once on initialization to grab the namespace.
-		runtime := httptransport.New(config.APIAddress(), config.BasePath, []string{"https"})
+		httpRuntime = httptransport.New(config.ServerUrl, config.BasePath, []string{"https"})
 
-		bearerAuth := httptransport.BearerToken(token.AccessToken)
-		runtime.DefaultAuthentication = bearerAuth
+		authWriter := httptransport.BearerToken(token.AccessToken)
+		httpRuntime.DefaultAuthentication = authWriter
 
-		namespaceClient := wcs.New(runtime, strfmt.Default)
+		namespaceClient := wcs.New(httpRuntime, strfmt.Default)
 		//Do GetNamespace Call. Put it in the context.
 		namespaceId, err := namespace.GetNamespace(namespaceClient, config.HCPOrgId, config.HCPProjectId)
 		if err != nil {
@@ -92,39 +89,31 @@ func New(config Config) (smwaypoint.ClientService, error) {
 		// Add namespace Id to the basepath
 		basePath := config.BasePath + "waypoint/2022-02-03/namespace/" + namespaceId
 		config.BasePath = basePath
+	} else if config.isSelfManaged() {
+		if config.ServerUrl == "" {
+			return nil, fmt.Errorf("Server url must be provided")
+		}
+		authWriter = httptransport.APIKeyAuth("authorization", "header", config.WaypointConfig.WaypointUserToken)
+		if config.BasePath == "" {
+			config.BasePath = defaultBasePath
+		}
+
+		tlsOpts = httptransport.TLSClientOptions{
+			InsecureSkipVerify: config.InsecureSkipVerify,
+		}
 	}
 
-	if config.APIState == SelfManaged {
-		bearerAuth = httptransport.BearerToken(config.WaypointConfig.WaypointUserToken)
+	httpClient, err := httptransport.TLSClient(tlsOpts)
+	if err != nil {
+		return nil, err
 	}
 
 	//Initialize API Client.
-	runtime := httptransport.New(config.APIAddress(), config.BasePath, []string{"https"})
-	runtime.Transport = transport
-	runtime.DefaultAuthentication = bearerAuth
+	httpRuntime = httptransport.NewWithClient(config.ServerUrl, config.BasePath, []string{"https"}, httpClient)
+	httpRuntime.Transport = transport
+	httpRuntime.DefaultAuthentication = authWriter
 
-	apiClient := smwaypoint.New(runtime, strfmt.Default)
+	apiClient := smwaypoint.New(httpRuntime, strfmt.Default)
 
 	return apiClient, nil
-}
-
-// Validate config variables to determine whether APIClient is for HCP Waypoint or Self Managed Waypoint.
-func (c *Config) decideState() (apiState, error) {
-	err := c.HCPWaypointConfig.Validate()
-	if err == nil {
-		return HCP, nil
-	}
-	err = c.WaypointConfig.Validate()
-	if err == nil {
-		return SelfManaged, nil
-	}
-	return Undetermined, err
-}
-
-func (c *Config) APIAddress() string {
-	if c.APIState == SelfManaged {
-		return c.ServerUrl
-	} else {
-		return "api.cloud.hashicorp.com"
-	}
 }
