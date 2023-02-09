@@ -1,4 +1,4 @@
-package config
+package client
 
 import (
 	"context"
@@ -23,6 +23,12 @@ const (
 
 	// tokenPath is the path used to retrieve the access token.
 	tokenPath string = "/oauth2/token"
+
+	//Default host for HCP Waypoint API.
+	defaultHCPHost = "api.cloud.hashicorp.com"
+
+	//Default HCP Waypoint Base Path.
+	defaultHCPBasePath = "/"
 )
 
 type HCPWaypointConfig struct {
@@ -43,12 +49,12 @@ type HCPWaypointConfig struct {
 	tokenSource oauth2.TokenSource
 }
 
-// New creates a new HCP Waypoint Configuration with bearer token auth given HCP Waypoint parameters.
-func New(orgId string, projectId string, clientId string, clientSecret string, ctx context.Context) (*HCPWaypointConfig, error) {
+// NewWithHCP creates a new HCP Waypoint Configuration with bearer token auth given HCP Waypoint parameters.
+func NewWithHCP(orgId, projectId, clientId, clientSecret string, ctx context.Context) (*Config, error) {
 	tlsTransport := cleanhttp.DefaultTransport()
 	tlsTransport.TLSClientConfig = &tls.Config{}
 
-	config := &HCPWaypointConfig{
+	hcp := &HCPWaypointConfig{
 		HCPOrgId:     orgId,
 		HCPProjectId: projectId,
 		ClientCredentialsConfig: clientcredentials.Config{
@@ -57,6 +63,11 @@ func New(orgId string, projectId string, clientId string, clientSecret string, c
 			TokenURL:       defaultAuthURL,
 			EndpointParams: url.Values{"audience": {aud}},
 		},
+	}
+
+	err := hcp.validateHCP()
+	if err != nil {
+		return nil, fmt.Errorf("cannot create hcp waypoint config: %w", err)
 	}
 
 	tokenURL, err := url.Parse(defaultAuthURL)
@@ -72,21 +83,27 @@ func New(orgId string, projectId string, clientId string, clientSecret string, c
 
 	tokenURL.Path = tokenPath
 
-	config.ClientCredentialsConfig.TokenURL = tokenURL.String()
+	hcp.ClientCredentialsConfig.TokenURL = tokenURL.String()
 
-	config.tokenSource = config.ClientCredentialsConfig.TokenSource(tokenContext)
+	hcp.tokenSource = hcp.ClientCredentialsConfig.TokenSource(tokenContext)
 
-	return config, nil
+	cfg := &Config{
+		HCPWaypointConfig: hcp,
+		ServerUrl:         defaultHCPHost,
+		BasePath:          defaultHCPBasePath,
+	}
+
+	return cfg, nil
 }
 
-func (c *HCPWaypointConfig) Validate() error {
+func (c *HCPWaypointConfig) validateHCP() error {
 	if c.ClientCredentialsConfig.ClientID == "" || c.ClientCredentialsConfig.ClientSecret == "" ||
 		c.HCPOrgId == "" || c.HCPProjectId == "" {
 		return fmt.Errorf("one of the following fields is missing:" +
 			"ClientID, " +
 			"ClientSecret, " +
 			"HCPOrgId, " +
-			"HCPProjectId.")
+			"HCPProjectId")
 	}
 	return nil
 }

@@ -12,26 +12,23 @@ import (
 	"github.com/hashicorp/go-cleanhttp"
 	"golang.org/x/oauth2"
 
-	"github.com/hashicorp/waypoint-client/config"
 	wcs "github.com/hashicorp/waypoint-client/gen/client/waypoint_control_service"
 	smwaypoint "github.com/hashicorp/waypoint/pkg/client/gen/client/waypoint"
 )
 
 const (
 	defaultBasePath = "/v1"
-	defaultHCPHost  = "api.cloud.hashicorp.com"
-
-	hcpPathPrefix = "waypoint/2022-02-03/namespace/"
+	hcpPathPrefix   = "waypoint/2022-02-03/namespace/"
 )
 
 type Config struct {
 	//HCPConfig contains config values to interact with HCP Waypoint API
 	//This config should be nil if interacting with Self Managed Waypoint API
-	*config.HCPWaypointConfig
+	*HCPWaypointConfig
 
 	//WaypointConfig contains config values to interact with Self Managed Waypoint API.
 	//This config should be set to nil if interacting with HCP Waypoint API.
-	*config.WaypointConfig
+	*WaypointConfig
 
 	//BasePath is the path to the api server.
 	BasePath string
@@ -71,15 +68,14 @@ func New(config Config) (smwaypoint.ClientService, error) {
 		config.Schemes = []string{"https"}
 	}
 
+	if config.BasePath == "" {
+		config.BasePath = defaultBasePath
+	}
+
 	if config.isHCP() {
 		//In order for the client to reach HCP Waypoint, we initialize a one-use only namespace client to make a request to
 		//GetNamespace based on the provided orgId and hcpProjectId. It utilizes the waypoint control service api to make this request.
 		//This GetNamespace call only happens on API client initialization for HCP Waypoint only.
-
-		//The retrieved namespaceId is then attached to the basepath for the API Client for all future requests.
-		if config.ServerUrl == "" {
-			config.ServerUrl = defaultHCPHost
-		}
 
 		token, err := config.HCPWaypointConfig.Token()
 		if err != nil {
@@ -125,9 +121,6 @@ func New(config Config) (smwaypoint.ClientService, error) {
 			return nil, fmt.Errorf("server url must be provided")
 		}
 		authWriter = httptransport.APIKeyAuth("authorization", "header", config.WaypointConfig.WaypointUserToken)
-		if config.BasePath == "" {
-			config.BasePath = defaultBasePath
-		}
 
 		tlsOpts = httptransport.TLSClientOptions{
 			InsecureSkipVerify: config.InsecureSkipVerify,
