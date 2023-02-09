@@ -12,7 +12,11 @@ type WaypointConfig struct {
 }
 
 func (c *WaypointConfig) Validate() error {
-	if (c.WaypointUserToken == "" && c.ServerUrl != "") || (c.WaypointUserToken != "" && c.ServerUrl == "") {
+	if c == nil {
+		return fmt.Errorf("Self managed config undefined")
+	}
+
+	if c.WaypointUserToken == "" || c.ServerUrl == "" {
 		return fmt.Errorf("both user token and server url must be provided")
 	}
 
