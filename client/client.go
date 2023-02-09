@@ -13,7 +13,6 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/hashicorp/waypoint-client/config"
-	namespace "github.com/hashicorp/waypoint-client/context"
 	wcs "github.com/hashicorp/waypoint-client/gen/client/waypoint_control_service"
 	smwaypoint "github.com/hashicorp/waypoint/pkg/client/gen/client/waypoint"
 )
@@ -21,20 +20,27 @@ import (
 const (
 	defaultBasePath = "/v1"
 	defaultHCPHost  = "api.cloud.hashicorp.com"
+
+	hcpPathPrefix = "waypoint/2022-02-03/namespace/"
 )
 
 type Config struct {
 	//HCPConfig contains config values to interact with HCP Waypoint API
+	//This config should be nil if interacting with Self Managed Waypoint API
 	*config.HCPWaypointConfig
 
 	//WaypointConfig contains config values to interact with Self Managed Waypoint API.
+	//This config should be set to nil if interacting with HCP Waypoint API.
 	*config.WaypointConfig
 
 	//BasePath is the path to the api server.
 	BasePath string
 
-	// ServerURL is the URL of the Waypoint Server. Only for Self-Managed Waypoint.
+	//ServerURL is the URL of the Waypoint Server. Only for Self-Managed Waypoint.
 	ServerUrl string
+
+	//Schemes is the protocol the client will be set to use. Defaults to https
+	Schemes []string
 }
 
 func (c *Config) isHCP() bool {
@@ -60,38 +66,63 @@ func New(config Config) (smwaypoint.ClientService, error) {
 	var authWriter runtime.ClientAuthInfoWriter
 	var tlsOpts httptransport.TLSClientOptions
 	var httpRuntime *client.Runtime
+
+	if len(config.Schemes) == 0 {
+		config.Schemes = []string{"https"}
+	}
+
 	if config.isHCP() {
+		//In order for the client to reach HCP Waypoint, we initialize a one-use only namespace client to make a request to
+		//GetNamespace based on the provided orgId and hcpProjectId. It utilizes the waypoint control service api to make this request.
+		//This GetNamespace call only happens on API client initialization for HCP Waypoint only.
+
+		//The retrieved namespaceId is then attached to the basepath for the API Client for all future requests.
 		if config.ServerUrl == "" {
 			config.ServerUrl = defaultHCPHost
 		}
 
 		token, err := config.HCPWaypointConfig.Token()
 		if err != nil {
-			return nil, fmt.Errorf("Cannot retrieve token from current HCP Credentials.")
+			return nil, fmt.Errorf("cannot retrieve token from current HCPWaypointConfig values: %w", err)
 		}
 
 		//create client to get namespace only. this client is only used once on initialization to grab the namespace.
-		httpRuntime = httptransport.New(config.ServerUrl, config.BasePath, []string{"https"})
+		httpRuntime = httptransport.New(config.ServerUrl, config.BasePath, config.Schemes)
 
-		authWriter := httptransport.BearerToken(token.AccessToken)
+		authWriter = httptransport.BearerToken(token.AccessToken)
 		httpRuntime.DefaultAuthentication = authWriter
 
 		namespaceClient := wcs.New(httpRuntime, strfmt.Default)
 		//Do GetNamespace Call. Put it in the context.
-		namespaceId, err := namespace.GetNamespace(namespaceClient, config.HCPOrgId, config.HCPProjectId)
-		if err != nil {
-			return nil, err
-		}
-		if namespaceId == "" || namespaceId == "0" {
-			return nil, fmt.Errorf("No namespace found associated with orgId and projectId provided.")
+
+		if config.HCPOrgId == "" || config.HCPProjectId == "" {
+			return nil, fmt.Errorf("orgId and HCPProjectId must be provided in HCPWaypointConfig. " +
+				"Please login to https://portal.cloud.hashicorp.com/sign-in to retrieve these values")
 		}
 
-		// Add namespace Id to the basepath
-		basePath := config.BasePath + "waypoint/2022-02-03/namespace/" + namespaceId
+		resp, err := namespaceClient.WaypointControlServiceGetNamespace(
+			wcs.NewWaypointControlServiceGetNamespaceParams().
+				WithLocationOrganizationID(config.HCPOrgId).
+				WithLocationProjectID(config.HCPProjectId),
+			nil,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("cannot retrieve namespace for orgId and project id: %w", err)
+		}
+
+		namespaceId := resp.GetPayload().Namespace.ID
+
+		if namespaceId == "" || namespaceId == "0" {
+			return nil, fmt.Errorf("no namespace found associated with orgId and projectId provided")
+		}
+
+		// Add namespace Id to the base path
+		basePath := config.BasePath + hcpPathPrefix + namespaceId
 		config.BasePath = basePath
+
 	} else if config.isSelfManaged() {
 		if config.ServerUrl == "" {
-			return nil, fmt.Errorf("Server url must be provided")
+			return nil, fmt.Errorf("server url must be provided")
 		}
 		authWriter = httptransport.APIKeyAuth("authorization", "header", config.WaypointConfig.WaypointUserToken)
 		if config.BasePath == "" {
@@ -105,11 +136,11 @@ func New(config Config) (smwaypoint.ClientService, error) {
 
 	httpClient, err := httptransport.TLSClient(tlsOpts)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot initialize http.Client: %w", err)
 	}
 
 	//Initialize API Client.
-	httpRuntime = httptransport.NewWithClient(config.ServerUrl, config.BasePath, []string{"https"}, httpClient)
+	httpRuntime = httptransport.NewWithClient(config.ServerUrl, config.BasePath, config.Schemes, httpClient)
 	httpRuntime.Transport = transport
 	httpRuntime.DefaultAuthentication = authWriter
 
