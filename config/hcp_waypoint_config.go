@@ -83,10 +83,10 @@ func (c *HCPWaypointConfig) Validate() error {
 	if c.ClientCredentialsConfig.ClientID == "" || c.ClientCredentialsConfig.ClientSecret == "" ||
 		c.HCPOrgId == "" || c.HCPProjectId == "" {
 		return fmt.Errorf("one of the following fields is missing:" +
-			"ClientID" +
-			"ClientSecret" +
-			"HCPOrgId" +
-			"HCPProjectId")
+			"ClientID, " +
+			"ClientSecret, " +
+			"HCPOrgId, " +
+			"HCPProjectId.")
 	}
 	return nil
 }
