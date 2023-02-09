@@ -43,8 +43,9 @@ type HCPWaypointConfig struct {
 	tokenSource oauth2.TokenSource
 }
 
-func New(orgId string, projectId string, clientId string, clientSecret string) (*HCPWaypointConfig, error) {
-	tlsTransport := cleanhttp.DefaultPooledTransport()
+// New creates a new HCP Waypoint Configuration with bearer token auth given HCP Waypoint parameters.
+func New(orgId string, projectId string, clientId string, clientSecret string, ctx context.Context) (*HCPWaypointConfig, error) {
+	tlsTransport := cleanhttp.DefaultTransport()
 	tlsTransport.TLSClientConfig = &tls.Config{}
 
 	config := &HCPWaypointConfig{
@@ -59,15 +60,16 @@ func New(orgId string, projectId string, clientId string, clientSecret string) (
 	}
 
 	tokenURL, err := url.Parse(defaultAuthURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse auth URL: %w", err)
+	}
+
 	tokenContext := context.WithValue(
-		context.Background(),
+		ctx,
 		oauth2.HTTPClient,
 		&http.Client{Transport: tlsTransport},
 	)
 
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse auth URL: %w", err)
-	}
 	tokenURL.Path = tokenPath
 
 	config.ClientCredentialsConfig.TokenURL = tokenURL.String()
@@ -78,17 +80,14 @@ func New(orgId string, projectId string, clientId string, clientSecret string) (
 }
 
 func (c *HCPWaypointConfig) Validate() error {
-	if c == nil {
-		return fmt.Errorf("HCP config undefined")
+	if c.ClientCredentialsConfig.ClientID == "" || c.ClientCredentialsConfig.ClientSecret == "" ||
+		c.HCPOrgId == "" || c.HCPProjectId == "" {
+		return fmt.Errorf("one of the following fields is missing:" +
+			"ClientID" +
+			"ClientSecret" +
+			"HCPOrgId" +
+			"HCPProjectId")
 	}
-	if c.ClientCredentialsConfig.ClientID == "" || c.ClientCredentialsConfig.ClientSecret == "" {
-		return fmt.Errorf("both client ID and secret must be provided")
-	}
-
-	if c.HCPOrgId == "" || c.HCPProjectId == "" {
-		return fmt.Errorf("Both organization ID and project ID must be provided")
-	}
-
 	return nil
 }
 

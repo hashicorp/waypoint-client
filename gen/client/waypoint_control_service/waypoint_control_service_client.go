@@ -25,11 +25,6 @@ type Client struct {
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	WaypointControlServiceAttachGithub(params *WaypointControlServiceAttachGithubParams, authInfo runtime.ClientAuthInfoWriter) (*WaypointControlServiceAttachGithubOK, error)
-
-	WaypointControlServiceCreateNamespace(params *WaypointControlServiceCreateNamespaceParams, authInfo runtime.ClientAuthInfoWriter) (*WaypointControlServiceCreateNamespaceOK, error)
-
-	WaypointControlServiceDetachGithub(params *WaypointControlServiceDetachGithubParams, authInfo runtime.ClientAuthInfoWriter) (*WaypointControlServiceDetachGithubOK, error)
 
 	WaypointControlServiceGetNamespace(params *WaypointControlServiceGetNamespaceParams, authInfo runtime.ClientAuthInfoWriter) (*WaypointControlServiceGetNamespaceOK, error)
 
@@ -37,109 +32,6 @@ type ClientService interface {
 
 	SetTransport(transport runtime.ClientTransport)
 }
-
-/*
-  WaypointControlServiceAttachGithub waypoint control service attach github API
-*/
-func (a *Client) WaypointControlServiceAttachGithub(params *WaypointControlServiceAttachGithubParams, authInfo runtime.ClientAuthInfoWriter) (*WaypointControlServiceAttachGithubOK, error) {
-	// TODO: Validate2 the params before sending
-	if params == nil {
-		params = NewWaypointControlServiceAttachGithubParams()
-	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "WaypointControlService_AttachGithub",
-		Method:             "GET",
-		PathPattern:        "/waypoint/2022-02-03/namespace/{namespace_id}/attach-github",
-		ProducesMediaTypes: []string{"application/json"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"https"},
-		Params:             params,
-		Reader:             &WaypointControlServiceAttachGithubReader{formats: a.formats},
-		AuthInfo:           authInfo,
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	})
-	if err != nil {
-		return nil, err
-	}
-	success, ok := result.(*WaypointControlServiceAttachGithubOK)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	unexpectedSuccess := result.(*WaypointControlServiceAttachGithubDefault)
-	return nil, runtime.NewAPIError("unexpected success response: content available as default response in error", unexpectedSuccess, unexpectedSuccess.Code())
-}
-
-/*
-  WaypointControlServiceCreateNamespace creates namespaces creates an h c p waypoint namespaces and start billing for it
-*/
-func (a *Client) WaypointControlServiceCreateNamespace(params *WaypointControlServiceCreateNamespaceParams, authInfo runtime.ClientAuthInfoWriter) (*WaypointControlServiceCreateNamespaceOK, error) {
-	// TODO: Validate2 the params before sending
-	if params == nil {
-		params = NewWaypointControlServiceCreateNamespaceParams()
-	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "WaypointControlService_CreateNamespace",
-		Method:             "PUT",
-		PathPattern:        "/waypoint/2022-02-03/organizations/{location.organization_id}/projects/{location.project_id}/namespace",
-		ProducesMediaTypes: []string{"application/json"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"https"},
-		Params:             params,
-		Reader:             &WaypointControlServiceCreateNamespaceReader{formats: a.formats},
-		AuthInfo:           authInfo,
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	})
-	if err != nil {
-		return nil, err
-	}
-	success, ok := result.(*WaypointControlServiceCreateNamespaceOK)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	unexpectedSuccess := result.(*WaypointControlServiceCreateNamespaceDefault)
-	return nil, runtime.NewAPIError("unexpected success response: content available as default response in error", unexpectedSuccess, unexpectedSuccess.Code())
-}
-
-/*
-  WaypointControlServiceDetachGithub waypoint control service detach github API
-*/
-func (a *Client) WaypointControlServiceDetachGithub(params *WaypointControlServiceDetachGithubParams, authInfo runtime.ClientAuthInfoWriter) (*WaypointControlServiceDetachGithubOK, error) {
-	// TODO: Validate2 the params before sending
-	if params == nil {
-		params = NewWaypointControlServiceDetachGithubParams()
-	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "WaypointControlService_DetachGithub",
-		Method:             "GET",
-		PathPattern:        "/waypoint/2022-02-03/namespace/{namespace_id}/detach-github",
-		ProducesMediaTypes: []string{"application/json"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"https"},
-		Params:             params,
-		Reader:             &WaypointControlServiceDetachGithubReader{formats: a.formats},
-		AuthInfo:           authInfo,
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	})
-	if err != nil {
-		return nil, err
-	}
-	success, ok := result.(*WaypointControlServiceDetachGithubOK)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	unexpectedSuccess := result.(*WaypointControlServiceDetachGithubDefault)
-	return nil, runtime.NewAPIError("unexpected success response: content available as default response in error", unexpectedSuccess, unexpectedSuccess.Code())
-}
-
 /*
   WaypointControlServiceGetNamespace gets namespace returns the namespace for the h c p organization project combo this automatically creates the namespace if it doesn t yet exist
 */
