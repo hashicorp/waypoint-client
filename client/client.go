@@ -58,6 +58,7 @@ func New(config Config) (smwaypoint.ClientService, error) {
 	}
 
 	var authWriter runtime.ClientAuthInfoWriter
+	var tlsOpts httptransport.TLSClientOptions
 	var httpRuntime *client.Runtime
 	if config.isHCP() {
 		if config.ServerUrl == "" {
@@ -96,10 +97,19 @@ func New(config Config) (smwaypoint.ClientService, error) {
 		if config.BasePath == "" {
 			config.BasePath = defaultBasePath
 		}
+
+		tlsOpts = httptransport.TLSClientOptions{
+			InsecureSkipVerify: config.InsecureSkipVerify,
+		}
+	}
+
+	httpClient, err := httptransport.TLSClient(tlsOpts)
+	if err != nil {
+		return nil, err
 	}
 
 	//Initialize API Client.
-	httpRuntime = httptransport.New(config.ServerUrl, config.BasePath, []string{"https"})
+	httpRuntime = httptransport.NewWithClient(config.ServerUrl, config.BasePath, []string{"https"}, httpClient)
 	httpRuntime.Transport = transport
 	httpRuntime.DefaultAuthentication = authWriter
 

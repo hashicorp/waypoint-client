@@ -9,6 +9,9 @@ type WaypointConfig struct {
 
 	// ServerURL is the URL of the Waypoint Server. Only for Self-Managed Waypoint.
 	ServerUrl string
+
+	// Waypoint by default runs with a self-signed certificate.
+	InsecureSkipVerify bool
 }
 
 func (c *WaypointConfig) Validate() error {
