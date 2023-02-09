@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	defaultBasePath = "/"
+	defaultBasePath = "/v1"
 	defaultHCPHost  = "api.cloud.hashicorp.com"
 )
 
@@ -52,9 +52,6 @@ func New(config Config) (smwaypoint.ClientService, error) {
 	var transport http.RoundTripper = &oauth2.Transport{
 		Base:   tlsTransport,
 		Source: &config,
-	}
-	if config.BasePath == "" {
-		config.BasePath = "/"
 	}
 
 	var authWriter runtime.ClientAuthInfoWriter
@@ -90,6 +87,9 @@ func New(config Config) (smwaypoint.ClientService, error) {
 		config.BasePath = basePath
 	} else if config.isSelfManaged() {
 		authWriter = httptransport.APIKeyAuth("authorization", "header", config.WaypointConfig.WaypointUserToken)
+		if config.BasePath == "" {
+			config.BasePath = defaultBasePath
+		}
 	}
 
 	//Initialize API Client.
