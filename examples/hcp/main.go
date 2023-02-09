@@ -32,10 +32,13 @@ func main() {
 	}
 
 	resp, err := client.WaypointListProjects(waypoint.NewWaypointListProjectsParams())
+	if err != nil {
+		log.Fatal("An error occurred while fetching projects", err)
+	}
+
 	projects := resp.GetPayload().Projects
 
 	for _, proj := range projects {
 		fmt.Println(proj.Project)
 	}
-
 }
