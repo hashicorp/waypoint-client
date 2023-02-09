@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	runtime2 "github.com/go-openapi/runtime"
+	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/runtime/client"
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
 	"github.com/hashicorp/go-cleanhttp"
@@ -56,7 +57,8 @@ func New(config Config) (smwaypoint.ClientService, error) {
 		config.BasePath = "/"
 	}
 
-	var authWriter runtime2.ClientAuthInfoWriter
+	var authWriter runtime.ClientAuthInfoWriter
+	var httpRuntime *client.Runtime
 	if config.isHCP() {
 		if config.ServerUrl == "" {
 			config.ServerUrl = defaultHCPHost
@@ -68,12 +70,12 @@ func New(config Config) (smwaypoint.ClientService, error) {
 		}
 
 		//create client to get namespace only. this client is only used once on initialization to grab the namespace.
-		runtime := httptransport.New(config.ServerUrl, config.BasePath, []string{"https"})
+		httpRuntime = httptransport.New(config.ServerUrl, config.BasePath, []string{"https"})
 
 		authWriter := httptransport.BearerToken(token.AccessToken)
-		runtime.DefaultAuthentication = authWriter
+		httpRuntime.DefaultAuthentication = authWriter
 
-		namespaceClient := wcs.New(runtime, strfmt.Default)
+		namespaceClient := wcs.New(httpRuntime, strfmt.Default)
 		//Do GetNamespace Call. Put it in the context.
 		namespaceId, err := namespace.GetNamespace(namespaceClient, config.HCPOrgId, config.HCPProjectId)
 		if err != nil {
@@ -91,11 +93,11 @@ func New(config Config) (smwaypoint.ClientService, error) {
 	}
 
 	//Initialize API Client.
-	runtime := httptransport.New(config.ServerUrl, config.BasePath, []string{"https"})
-	runtime.Transport = transport
-	runtime.DefaultAuthentication = authWriter
+	httpRuntime = httptransport.New(config.ServerUrl, config.BasePath, []string{"https"})
+	httpRuntime.Transport = transport
+	httpRuntime.DefaultAuthentication = authWriter
 
-	apiClient := smwaypoint.New(runtime, strfmt.Default)
+	apiClient := smwaypoint.New(httpRuntime, strfmt.Default)
 
 	return apiClient, nil
 }
