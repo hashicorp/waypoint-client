@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -12,17 +13,16 @@ import (
 //Example Usage of Waypoint Client Library with HCP Waypoint.
 
 func main() {
-
 	hcp, err := config.New("some_hcp_org_id",
 		"some_hcp_project_id",
 		"some_service_principal_client_id",
-		"some_client_secret")
+		"some_client_secret", context.Background())
 	if err != nil {
 		panic(err)
 	}
 
 	clientConfig := apiclient.Config{
-		HCPWaypointConfig: *hcp,
+		HCPWaypointConfig: hcp,
 		BasePath:          "/",
 	}
 
@@ -32,7 +32,10 @@ func main() {
 	}
 
 	resp, err := client.WaypointListProjects(waypoint.NewWaypointListProjectsParams())
+	projects := resp.GetPayload().Projects
 
-	fmt.Printf("%v#", resp.GetPayload())
+	for _, proj := range projects {
+		fmt.Println(proj.Project)
+	}
 
 }
