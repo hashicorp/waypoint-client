@@ -156,8 +156,8 @@ github.com/google/uuid v1.1.1/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+
 github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
 github.com/hashicorp/go-cleanhttp v0.5.2 h1:035FKYIWjmULyFRBKPs8TBQoi0x6d9G4xc9neXJWAZQ=
 github.com/hashicorp/go-cleanhttp v0.5.2/go.mod h1:kO/YDlP8L1346E6Sodw+PrpBSV4/SoxCXGY6BqNFT48=
-github.com/hashicorp/waypoint v0.10.1-0.20230208212107-0184c43445d2 h1:SyLVLyGV7mGVpXhMfkGvt0ody0x6G4JhdfApzYE/XXU=
-github.com/hashicorp/waypoint v0.10.1-0.20230208212107-0184c43445d2/go.mod h1:BZi8e9Jdp9sOClK8BzU7DktYC2cUeKflGWxsyBjlFAE=
+github.com/hashicorp/waypoint v0.11.0 h1:lUAKsmHi2bnfIL9SQUgdzU2T084vjQ/o59qPA/w4X6w=
+github.com/hashicorp/waypoint v0.11.0/go.mod h1:BZi8e9Jdp9sOClK8BzU7DktYC2cUeKflGWxsyBjlFAE=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
 github.com/jmespath/go-jmespath v0.4.0/go.mod h1:T8mJZnbsbmF+m6zOOFylbeCJqk5+pHWvzYPziyZiYoo=
 github.com/jmespath/go-jmespath/internal/testify v1.5.1/go.mod h1:L3OGu8Wl2/fWfCI6z80xFu9LTZmf1ZRjMHUOPmWr69U=

@@ -9,7 +9,7 @@ require (
 	github.com/go-openapi/swag v0.19.15
 	github.com/go-openapi/validate v0.20.2
 	github.com/hashicorp/go-cleanhttp v0.5.2
-	github.com/hashicorp/waypoint v0.10.1-0.20230208212107-0184c43445d2
+	github.com/hashicorp/waypoint v0.11.0
 	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783
 )
 
