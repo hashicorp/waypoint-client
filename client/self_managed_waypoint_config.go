@@ -21,6 +21,7 @@ type WaypointConfig struct {
 func NewWithSelfManaged(waypointUserToken, serverUrl string, skipVerify bool) (*Config, error) {
 	waypointcfg := &WaypointConfig{
 		WaypointUserToken:  waypointUserToken,
+		ServerUrl:          serverUrl,
 		InsecureSkipVerify: skipVerify,
 	}
 
