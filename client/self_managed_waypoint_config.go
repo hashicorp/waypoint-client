@@ -22,7 +22,7 @@ func NewWithSelfManaged(waypointUserToken, serverUrl string, skipVerify bool) (*
 	}
 
 	if serverUrl == "" {
-		return nil, fmt.Error("cannot create self managed waypoint config, no server url provided")
+		return nil, fmt.Errorf("cannot create self managed waypoint config, no server url provided")
 	}
 
 	err := waypointcfg.validateSelfManaged()
